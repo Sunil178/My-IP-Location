@@ -1,5 +1,7 @@
 package com.evanhe.myiplocation;
 
+import static com.evanhe.myiplocation.MyApplication.AF_DEV_KEY;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -7,6 +9,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.annotation.SuppressLint;
 import android.content.Context;
+
+import com.appsflyer.AppsFlyerConversionListener;
+import com.appsflyer.AppsFlyerLib;
+//import com.appsflyer.AppsFlyerLibCore.LOG_TAG;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -29,6 +36,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -47,6 +55,7 @@ import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -84,11 +93,64 @@ public class MainActivity extends AppCompatActivity {
         TelephonyManager telephonyManager = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
         this.network = telephonyManager.getNetworkOperatorName();
 
+
+
+
+
+
+
+        AppsFlyerConversionListener conversionListener =  new AppsFlyerConversionListener() {
+            public String LOG_TAG = "AppsFlyer*****";
+            @Override
+            public void onConversionDataSuccess(Map<String, Object> conversionDataMap) {
+                for (String attrName : conversionDataMap.keySet())
+                    Log.d(LOG_TAG, "onConversionDataSuccess attribute: " + attrName + " = " + conversionDataMap.get(attrName));
+            }
+
+            @Override
+            public void onConversionDataFail(String errorMessage) {
+                Log.d(LOG_TAG, "error getting conversion data: " + errorMessage);
+            }
+
+            @Override
+            public void onAppOpenAttribution(Map<String, String> attributionData) {
+                for (String attrName : attributionData.keySet())
+                    Log.d(LOG_TAG, "onAppOpenAttribution attribute: " + attrName + " = " + attributionData.get(attrName));
+            }
+
+            @Override
+            public void onAttributionFailure(String errorMessage) {
+                Log.d(LOG_TAG, "error onAttributionFailure : " + errorMessage);
+            }
+
+        };
+
+
+        AppsFlyerLib.getInstance().init(AF_DEV_KEY, conversionListener, getApplicationContext());
+
+
+
+
+
+
+
+
+
+
+
         browser = (WebView) findViewById(R.id.webview);
         browser.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
                 try {
+
+
+                    AppsFlyerLib.getInstance().setDebugLog(true);
+                    AppsFlyerLib.getInstance().start(getApplicationContext());
+//                    AppsFlyerLib.getInstance();
+
+
+
                     new GetPublicIP().execute();
 
                     if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {

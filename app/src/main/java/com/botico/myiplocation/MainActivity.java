@@ -1,52 +1,26 @@
-package com.evanhe.myiplocation;
+package com.botico.myiplocation;
 
-import static com.evanhe.myiplocation.MyApplication.AF_DEV_KEY;
-
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import com.appsflyer.AppsFlyerConversionListener;
-import com.appsflyer.AppsFlyerLib;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
-import android.provider.Settings;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    private String network, address, city, htmlText;
+    private String network, htmlText;
     public static WebView browser;
-    Geocoder geocoder;
-    List<Address> addresses;
-    public static Runnable runnable;
-
     @SuppressLint("WrongConstant")
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
@@ -54,71 +28,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         TelephonyManager telephonyManager = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
-        this.network = telephonyManager.getNetworkOperatorName();
-
-
-
-
-
-
-
-        AppsFlyerConversionListener conversionListener =  new AppsFlyerConversionListener() {
-            public String LOG_TAG = "AppsFlyer*****";
-            @Override
-            public void onConversionDataSuccess(Map<String, Object> conversionDataMap) {
-                for (String attrName : conversionDataMap.keySet())
-                    Log.d(LOG_TAG, "onConversionDataSuccess attribute: " + attrName + " = " + conversionDataMap.get(attrName));
-            }
-
-            @Override
-            public void onConversionDataFail(String errorMessage) {
-                Log.d(LOG_TAG, "error getting conversion data: " + errorMessage);
-            }
-
-            @Override
-            public void onAppOpenAttribution(Map<String, String> attributionData) {
-                for (String attrName : attributionData.keySet())
-                    Log.d(LOG_TAG, "onAppOpenAttribution attribute: " + attrName + " = " + attributionData.get(attrName));
-            }
-
-            @Override
-            public void onAttributionFailure(String errorMessage) {
-                Log.d(LOG_TAG, "error onAttributionFailure : " + errorMessage);
-            }
-
-        };
-
-
-        AppsFlyerLib.getInstance().init(AF_DEV_KEY, conversionListener, getApplicationContext());
-
-
-
-
-
-
-
-
-
-
-
+        network = telephonyManager.getNetworkOperatorName();
         browser = (WebView) findViewById(R.id.webview);
         browser.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
-                try {
-
-
-                    AppsFlyerLib.getInstance().setDebugLog(true);
-                    AppsFlyerLib.getInstance().start(getApplicationContext());
-//                    AppsFlyerLib.getInstance();
-
-
-
-                    new GetPublicIP().execute();
-
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
+                new GetPublicIP().execute();
             }
         });
         browser.setWebChromeClient(new WebChromeClient());

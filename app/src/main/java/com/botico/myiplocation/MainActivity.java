@@ -11,6 +11,9 @@ import android.telephony.TelephonyManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import com.google.firebase.analytics.FirebaseAnalytics;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.IOException;
@@ -21,12 +24,18 @@ import java.net.URLConnection;
 public class MainActivity extends AppCompatActivity {
     private String network, htmlText;
     public static WebView browser;
+    public Bundle bundle;
+    public FirebaseAnalytics firebaseAnalytics;
     @SuppressLint("WrongConstant")
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        firebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        bundle = new Bundle();
+        bundle.putString("APP_LAUNCH", "SUCCESS");
+        firebaseAnalytics.logEvent(FirebaseAnalytics.Param.SUCCESS, bundle);
         TelephonyManager telephonyManager = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
         network = telephonyManager.getNetworkOperatorName();
         browser = (WebView) findViewById(R.id.webview);

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "247523641345",
+    "project_id": "comboticomyiplocation",
+    "storage_bucket": "comboticomyiplocation.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:247523641345:android:fbb6fe57af4fc677cdd800",
+        "android_client_info": {
+          "package_name": "com.botico.myiplocation"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "247523641345-gdn5hhfad5oppmraur5o4sj9ho7jhbii.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDy4yAda3cPnGZSgaXB7TWSxJp54_aa1-A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "247523641345-gdn5hhfad5oppmraur5o4sj9ho7jhbii.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

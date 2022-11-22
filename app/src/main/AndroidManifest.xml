@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.evanhe.myiplocation">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
@@ -14,7 +13,7 @@
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.MyApplication"
         android:name=".MyApplication">
-        <activity android:name="com.evanhe.myiplocation.MainActivity">
+        <activity android:name="com.evanhe.myiplocation.MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

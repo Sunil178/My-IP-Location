@@ -9,8 +9,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.annotation.SuppressLint;
 import android.content.Context;
+
+import com.appsflyer.AFInAppEventParameterName;
+import com.appsflyer.AFInAppEventType;
 import com.appsflyer.AppsFlyerConversionListener;
 import com.appsflyer.AppsFlyerLib;
+import com.appsflyer.attribution.AppsFlyerRequestListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import android.content.Intent;
@@ -36,6 +40,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -46,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     Geocoder geocoder;
     List<Address> addresses;
     public static Runnable runnable;
+    public static String LOG_TAG = "BOTICOCEANS";
 
     @SuppressLint("WrongConstant")
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -55,11 +61,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         TelephonyManager telephonyManager = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
         this.network = telephonyManager.getNetworkOperatorName();
-
-
-
-
-
 
 
         AppsFlyerConversionListener conversionListener =  new AppsFlyerConversionListener() {
@@ -90,15 +91,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         AppsFlyerLib.getInstance().init(AF_DEV_KEY, conversionListener, getApplicationContext());
-
-
-
-
-
-
-
-
-
 
 
         browser = (WebView) findViewById(R.id.webview);
@@ -213,59 +205,83 @@ public class MainActivity extends AppCompatActivity {
                 "</html>";
         browser.loadDataWithBaseURL("file:///android_asset/www/", htmlText, "text/html", "UTF-8", null);
     }
-}
 
-class GetPublicIP extends AsyncTask<String, String, String> {
-    URLConnection socket;
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    @Override
-    protected String doInBackground(String... strings) {
-        String publicIP = "";
+    class GetPublicIP extends AsyncTask<String, String, String> {
+        URLConnection socket;
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        @Override
+        protected String doInBackground(String... strings) {
+            String publicIP = "";
 
-        try  {
-            socket = new URL("http://ip-api.com/json").openConnection();
-            socket.setUseCaches( false );
-            socket.setDefaultUseCaches( false );
-            HttpURLConnection conn = ( HttpURLConnection )socket;
-            conn.setUseCaches( false );
-            conn.setDefaultUseCaches( false );
-            conn.setRequestProperty( "Cache-Control",  "no-cache" );
-            conn.addRequestProperty("Cache-Control", "max-age=0");
-            conn.setRequestProperty( "Pragma",  "no-cache" );
-            conn.setRequestProperty( "Expires",  "0" );
-            conn.setRequestMethod( "GET" );
-            conn.connect();
-            java.util.Scanner s = new java.util.Scanner(conn.getInputStream(), "UTF-8").useDelimiter("\\A");
-            publicIP = s.next();
-            conn.disconnect();
-        } catch (IOException e) {
-            MainActivity.browser.post(new Runnable() {
-                @Override
-                public void run() {
-                    MainActivity.browser.loadUrl("javascript:(updateIpRegion(\"No Internet\"))");
-                    MainActivity.browser.loadUrl("javascript:(updateIpCity(\"No Internet\"))");
-                    MainActivity.browser.loadUrl("javascript:(updateIP(\"No Internet\"))");
-                    MainActivity.browser.loadUrl("javascript:(updateCountry(\"No Internet\"))");
-                    MainActivity.browser.loadUrl("javascript:(updateISP(\"No Internet\"))");
-                }
-            });
-            e.printStackTrace();
+            try  {
+                socket = new URL("http://ip-api.com/json").openConnection();
+                socket.setUseCaches( false );
+                socket.setDefaultUseCaches( false );
+                HttpURLConnection conn = ( HttpURLConnection )socket;
+                conn.setUseCaches( false );
+                conn.setDefaultUseCaches( false );
+                conn.setRequestProperty( "Cache-Control",  "no-cache" );
+                conn.addRequestProperty("Cache-Control", "max-age=0");
+                conn.setRequestProperty( "Pragma",  "no-cache" );
+                conn.setRequestProperty( "Expires",  "0" );
+                conn.setRequestMethod( "GET" );
+                conn.connect();
+                java.util.Scanner s = new java.util.Scanner(conn.getInputStream(), "UTF-8").useDelimiter("\\A");
+                publicIP = s.next();
+                conn.disconnect();
+            } catch (IOException e) {
+                MainActivity.browser.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        MainActivity.browser.loadUrl("javascript:(updateIpRegion(\"No Internet\"))");
+                        MainActivity.browser.loadUrl("javascript:(updateIpCity(\"No Internet\"))");
+                        MainActivity.browser.loadUrl("javascript:(updateIP(\"No Internet\"))");
+                        MainActivity.browser.loadUrl("javascript:(updateCountry(\"No Internet\"))");
+                        MainActivity.browser.loadUrl("javascript:(updateISP(\"No Internet\"))");
+                    }
+                });
+                e.printStackTrace();
+            }
+            return publicIP;
         }
-        return publicIP;
+
+        @Override
+        protected void onPostExecute(String publicIp) {
+            super.onPostExecute(publicIp);
+            try {
+                JSONObject obj = new JSONObject(publicIp);
+                MainActivity.browser.loadUrl("javascript:(updateCountry(\"" + obj.get("country") + "\"))");
+                MainActivity.browser.loadUrl("javascript:(updateIpRegion(\"" + obj.get("regionName") + "\"))");
+                MainActivity.browser.loadUrl("javascript:(updateIpCity(\"" + obj.get("city") + "\"))");
+                MainActivity.browser.loadUrl("javascript:(updateIP(\"" + obj.get("query") + "\"))");
+                MainActivity.browser.loadUrl("javascript:(updateISP(\"" + obj.get("isp") + "\"))");
+
+                Map<String, Object> eventValues = new HashMap<String, Object>();
+                eventValues.put("android_id", Settings.Secure.getString(getApplicationContext().getContentResolver(), "android_id"));
+                eventValues.put("country",obj.get("country"));
+                eventValues.put("regionName",obj.get("regionName"));
+                eventValues.put("city",obj.get("city"));
+                eventValues.put("ip",obj.get("query"));
+                eventValues.put("isp",obj.get("isp"));
+
+                Log.i(LOG_TAG, eventValues.toString());
+
+                AppsFlyerLib.getInstance().logEvent(getApplicationContext(), AFInAppEventType.COMPLETE_REGISTRATION, eventValues, new AppsFlyerRequestListener() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(LOG_TAG, "AppsFlyer register sent successfully");
+                    }
+                    @Override
+                    public void onError(int i, @NonNull String s) {
+                        Log.d(LOG_TAG, "AppsFlyer event failed to be sent:\n" +
+                                "Error code: " + i + "\n"
+                                + "Error description: " + s);
+                    }
+                });
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    @Override
-    protected void onPostExecute(String publicIp) {
-        super.onPostExecute(publicIp);
-        try {
-            JSONObject obj = new JSONObject(publicIp);
-            MainActivity.browser.loadUrl("javascript:(updateCountry(\"" + obj.get("country") + "\"))");
-            MainActivity.browser.loadUrl("javascript:(updateIpRegion(\"" + obj.get("regionName") + "\"))");
-            MainActivity.browser.loadUrl("javascript:(updateIpCity(\"" + obj.get("city") + "\"))");
-            MainActivity.browser.loadUrl("javascript:(updateIP(\"" + obj.get("query") + "\"))");
-            MainActivity.browser.loadUrl("javascript:(updateISP(\"" + obj.get("isp") + "\"))");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
 }
